@@ -94,6 +94,9 @@ def cadastrar_aluno():
     voltar_para_o_menu()
 
 def cadastrar_notas():
+    '''
+        Função que recebe input do usuário e cadastra as notas no arquivo csv
+    '''
     listar_todos_alunos()
     linhas_atualizadas = []
 
@@ -134,7 +137,14 @@ def menu():
     print('3. Listar notas de um aluno')
     print('4. Sair')
 
-    opt = int(input('Digita a opção: '))
+    try:
+        opt = int(input('Digita a opção: '))
+    except ValueError:
+        print('ERRO: Escreva um número!\n')
+        voltar_para_o_menu()
+    except Exception:
+        print('Houve um erro.')
+        voltar_para_o_menu() 
 
     match opt:
         case 1:
@@ -145,26 +155,40 @@ def menu():
             listar_nota()
         case 4:
             print('Encerrando...')
-    
+        case _:
+            print('Digite uma opção valida.\n')
+            voltar_para_o_menu()
 
 def calcular_media():
+    '''
+        Função que calcula a média de todos os alunos e atualiza no arquivo csv
+    '''
+
     linhas_atualizadas = []
+    with open('alunos.csv', newline='', encoding='utf-8-sig') as f:
 
-    with open('alunos.csv', newline='') as f:
-
-        reader = csv.DictReader(f)
+        reader = csv.DictReader(f, skipinitialspace=True)
         headers = reader.fieldnames
         for line in reader:
-            nota01 = float(line['nota01'])
-            nota02 = float(line['nota02'])
-            nota03 = float(line['nota03'])
-
-            media = round(float(nota01 + nota02 + nota03) / 3.0, 2)
+            nota_invalida = False
+            try:
+                nota01 = float(line['nota01'])
+                nota02 = float(line['nota02'])
+                nota03 = float(line['nota03'])
+            except ValueError:
+                print(f'Não foi possível calcular médias do aluno: {line['nome']}')
+                print(f'Caracter invalido em nota\n')
+                nota_invalida = True                
+            
+            if nota_invalida == False:
+                media = round(float(nota01 + nota02 + nota03) / 3.0, 2)
+            else:
+                media = 0.0
 
             line['media'] = media
-
+        
             linhas_atualizadas.append(line)
-
+        
     with open(FILE_PATH, 'w', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=headers)
 
